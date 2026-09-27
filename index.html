@@ -93,11 +93,25 @@ footer a{color:var(--neon); text-decoration:none}
       <div><label class="lbl">Size</label>
         <select id="size">
           <option value="1024x1024">Square 1:1</option>
+          <option value="1024x1366">Portrait 3:4</option>
           <option value="1024x1536">Portrait 2:3</option>
           <option value="1536x1024">Landscape 3:2</option>
+          <option value="1536x512">Wide 3:1</option>
           <option value="1024x1792">Tall 9:16</option>
           <option value="1792x1024">Wide 16:9</option>
         </select></div>
+    </div>
+    <div>
+      <label class="lbl">Print size (t-shirt dimensions)</label>
+      <select id="printsize">
+        <option value="">Custom — use Size above</option>
+        <option value="back">Back print 12&Prime;&times;16&Prime;</option>
+        <option value="oversized">Oversized back 24&Prime;&times;36&Prime;</option>
+        <option value="chest">Chest hit 5&Prime;&times;5&Prime;</option>
+        <option value="allover">All-over 12&Prime;&times;12&Prime;</option>
+        <option value="hem">Hem hit (wide strip)</option>
+      </select>
+      <div class="hint" id="printHint"></div>
     </div>
     <div class="toggles">
       <label class="tgl"><input type="checkbox" id="enhance"> Enhance prompt</label>
@@ -127,7 +141,16 @@ const PRESETS = {
   "Photoreal": ", photorealistic, 8k, highly detailed, cinematic lighting",
   "Dark fantasy": ", dark fantasy illustration, dramatic lighting, intricate detail, moody atmosphere",
   "Anime": ", anime style, vibrant, clean linework, studio quality",
-  "Minimal logo": ", minimalist logo design, flat vector, high contrast, simple shapes"
+  "Minimal logo": ", minimalist logo design, flat vector, high contrast, simple shapes",
+  "Era Mashup × Iced": ", mashup of art historical periods in one composition — classical Roman relief sculpture colliding with Basquiat-style neo-expressionist marks, baroque drama, graffiti wildstyle — portrait of a figure wearing heavy iced-out diamond chains and a gold grill with vampire fangs, bold streetwear t-shirt graphic, centered composition framed for back print, high contrast, screen-print aesthetic"
+};
+const PRINT_SIZES = {
+  "": null,
+  "back":      { size:"1024x1366", label:"Back print — 12\u2033×16\u2033", dpi:"3600×4800 px @ 300 DPI" },
+  "oversized": { size:"1024x1536", label:"Oversized back — 24\u2033×36\u2033", dpi:"7200×10800 px @ 300 DPI" },
+  "chest":     { size:"1024x1024", label:"Chest hit — 5\u2033×5\u2033", dpi:"1500×1500 px @ 300 DPI" },
+  "allover":   { size:"1024x1024", label:"All-over panel — 12\u2033×12\u2033", dpi:"3600×3600 px @ 300 DPI" },
+  "hem":       { size:"1536x512",  label:"Hem hit — wide strip", dpi:"4500×1500 px @ 300 DPI" }
 };
 const $ = id => document.getElementById(id);
 const presetsEl = $("presets");
@@ -143,6 +166,15 @@ Object.keys(PRESETS).forEach(name => {
   };
   presetsEl.appendChild(b);
 });
+$("printsize").onchange = () => {
+  const ps = PRINT_SIZES[$("printsize").value];
+  if(ps){
+    $("size").value = ps.size;
+    $("printHint").textContent = ps.label + " · generate here, then upscale to " + ps.dpi + " for production print.";
+  } else {
+    $("printHint").textContent = "";
+  }
+};
 let history = [];
 try { history = JSON.parse(localStorage.getItem("icyunv-studio-history") || "[]"); } catch(e){}
 function saveHistory(){ try{ localStorage.setItem("icyunv-studio-history", JSON.stringify(history.slice(0,60))); }catch(e){} }
