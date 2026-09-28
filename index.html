@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ICYUNV Image Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0a0a0a; --panel:#141414; --panel2:#1c1c1c;
@@ -17,8 +17,17 @@ body{background:var(--bg); color:var(--txt); font-family:'Inter',system-ui,sans-
 header{padding:28px 24px 18px; text-align:center; border-bottom:1px solid var(--border);
   background:radial-gradient(ellipse at 50% -40%, rgba(57,255,20,.12), transparent 60%)}
 header h1{font-family:'Anton',sans-serif; font-size:clamp(28px,6vw,52px); letter-spacing:2px;
-  background:linear-gradient(180deg,#fff 20%,var(--neon) 55%,#0d5c06 100%);
-  -webkit-background-clip:text; background-clip:text; color:transparent}
+  background:linear-gradient(110deg,#fff 12%,var(--neon) 32%,#0d5c06 50%,var(--neon) 68%,#fff 88%);
+  background-size:220% auto;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:sheen 7s linear infinite}
+@keyframes sheen{to{background-position:220% center}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;color:var(--neon);margin:0 0 10px}
+/* kinetic split-text letters */
+.ch{display:inline-block;will-change:transform,opacity}
+.kinetic .ch{opacity:0;transform:translateY(.55em) rotate(5deg);animation:chIn .65s cubic-bezier(.16,.8,.26,1) forwards;animation-play-state:paused;animation-delay:calc(var(--i,0)*30ms)}
+.kinetic.go .ch{animation-play-state:running}
+@keyframes chIn{to{opacity:1;transform:translateY(0) rotate(0)}}
 header p{color:var(--dim); margin-top:6px; font-size:14px}
 header p b{color:var(--neon)}
 .wrap{max-width:1200px; margin:0 auto; padding:24px; display:grid; grid-template-columns:380px 1fr; gap:24px}
@@ -48,8 +57,22 @@ select:focus,input:focus{outline:none; border-color:var(--neon)}
 #genBtn:disabled{opacity:.5; cursor:wait}
 .hint{font-size:12px; color:var(--dim); margin-top:10px; line-height:1.5}
 #gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px; align-content:start}
-.gitem{background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; position:relative}
-.gitem img{width:100%; display:block; aspect-ratio:1; object-fit:cover; background:#000}
+.gitem{background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; position:relative;
+  animation:gIn .55s cubic-bezier(.16,.8,.26,1) backwards;
+  transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease}
+.gitem:hover{transform:translateY(-5px); border-color:var(--neon); box-shadow:0 16px 44px rgba(57,255,20,.16)}
+.gitem img{width:100%; display:block; aspect-ratio:1; object-fit:cover; background:#000; transition:transform .5s cubic-bezier(.16,.8,.26,1)}
+.gitem:hover img{transform:scale(1.06)}
+@keyframes gIn{from{opacity:0; translate:0 26px}to{opacity:1; translate:0 0}}
+/* scroll reveals */
+.rv{opacity:0;translate:0 30px;transition:opacity .7s ease,translate .7s cubic-bezier(.16,.8,.26,1);transition-delay:var(--d,0ms)}
+.rv.in{opacity:1;translate:0 0}
+@media(prefers-reduced-motion:reduce){
+  .kinetic .ch{opacity:1;transform:none;animation:none}
+  header h1{animation:none}
+  .gitem{animation:none;transition:none}
+  .rv{opacity:1;translate:0 0;transition:none}
+}
 .gitem .meta{padding:10px 12px}
 .gitem .meta p{font-size:12px; color:var(--dim); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:32px}
 .gitem .actions{display:flex; gap:8px; margin-top:8px}
@@ -74,11 +97,12 @@ footer a{color:var(--neon); text-decoration:none}
 </head>
 <body>
 <header>
-  <h1>ICYUNV IMAGE STUDIO</h1>
+  <p class="eyebrow">[ YOUR OWN GENERATOR ]</p>
+  <h1 id="studioLogo">ICYUNV IMAGE STUDIO</h1>
   <p>Your own generator. <b>Free. No signup. No blocked prompts.</b></p>
 </header>
 <div class="wrap">
-  <div class="card">
+  <div class="card rv">
     <h2>Create</h2>
     <label class="lbl">Prompt</label>
     <textarea id="prompt" placeholder="Describe the image... e.g. dripping graffiti letters spelling TOAD DAWG above a frosty cannabis bud, ICYUNV at the bottom, black background, tee graphic"></textarea>
@@ -122,7 +146,7 @@ footer a{color:var(--neon); text-decoration:none}
     <p class="hint">Powered by Pollinations.ai — free, no account needed. Images generate in ~10–60 seconds. Private mode keeps them out of the public feed.</p>
   </div>
   <div>
-    <div class="card" style="margin-bottom:16px; padding:14px 20px">
+    <div class="card rv" style="--d:120ms; margin-bottom:16px; padding:14px 20px">
       <h2 style="margin:0">Gallery <span id="count" style="color:var(--dim)"></span></h2>
     </div>
     <div id="gallery"></div>
@@ -265,6 +289,27 @@ $("genBtn").onclick = () => {
   };
   img.src = url;
 };
+// kinetic logo: split into letters, staggered entrance
+(function(){
+  var el = document.getElementById('studioLogo');
+  if(el){
+    var i = 0, frag = document.createDocumentFragment();
+    Array.prototype.forEach.call(el.textContent, function(ch){
+      var s = document.createElement('span');
+      s.className = 'ch';
+      s.textContent = (ch === ' ') ? '\u00A0' : ch;
+      s.style.setProperty('--i', i++);
+      frag.appendChild(s);
+    });
+    el.textContent = '';
+    el.appendChild(frag);
+    el.classList.add('kinetic','go');
+  }
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.1});
+  document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+})();
 render();
 </script>
 </body>
