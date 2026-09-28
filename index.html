@@ -25,6 +25,7 @@ header h1{font-family:'Anton',sans-serif; font-size:clamp(28px,6vw,52px); letter
 .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;color:var(--neon);margin:0 0 10px}
 /* kinetic split-text letters */
 .ch{display:inline-block;will-change:transform,opacity}
+.kinetic .word{display:inline-block;white-space:nowrap} /* never break inside a word */
 .kinetic .ch{opacity:0;transform:translateY(.55em) rotate(5deg);animation:chIn .65s cubic-bezier(.16,.8,.26,1) forwards;animation-play-state:paused;animation-delay:calc(var(--i,0)*30ms)}
 .kinetic.go .ch{animation-play-state:running}
 @keyframes chIn{to{opacity:1;transform:translateY(0) rotate(0)}}
@@ -294,12 +295,19 @@ $("genBtn").onclick = () => {
   var el = document.getElementById('studioLogo');
   if(el){
     var i = 0, frag = document.createDocumentFragment();
-    Array.prototype.forEach.call(el.textContent, function(ch){
-      var s = document.createElement('span');
-      s.className = 'ch';
-      s.textContent = (ch === ' ') ? '\u00A0' : ch;
-      s.style.setProperty('--i', i++);
-      frag.appendChild(s);
+    el.textContent.split(/(\s+)/).forEach(function(part){
+      if(!part) return;
+      if(/^\s+$/.test(part)){ frag.appendChild(document.createTextNode(' ')); return; }
+      var w = document.createElement('span');
+      w.className = 'word'; /* unbreakable: wrap only between words */
+      Array.prototype.forEach.call(part, function(ch){
+        var s = document.createElement('span');
+        s.className = 'ch';
+        s.textContent = ch;
+        s.style.setProperty('--i', i++);
+        w.appendChild(s);
+      });
+      frag.appendChild(w);
     });
     el.textContent = '';
     el.appendChild(frag);
